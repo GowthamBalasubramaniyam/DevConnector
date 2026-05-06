@@ -85,7 +85,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "post_id")
-    @JsonIgnore // Prevent infinite recursion
+    @JsonIgnore // Prevents infinite recursion
     private Post post;
 
     @ManyToOne

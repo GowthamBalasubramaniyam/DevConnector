@@ -21,14 +21,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
-            // This should return the JWT string
             String token = userService.loginUser(loginRequest); 
             
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            // Return 401 for bad credentials
             return ResponseEntity.status(401).body(Map.of("message", "Invalid email or password"));
         }
     }
@@ -38,7 +36,6 @@ public class AuthController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             
-            // 1. BLOCK ANONYMOUS ACCESS IMMEDIATELY
             if (authentication == null || !authentication.isAuthenticated() || 
                 "anonymousUser".equals(authentication.getPrincipal().toString())) {
                 System.out.println("Blocked anonymous access attempt");
@@ -48,7 +45,6 @@ public class AuthController {
             String email = authentication.getName();
             User user = userService.findByEmail(email);
             
-            // 2. Hide password hash for security
             user.setPassword(null); 
             
             return ResponseEntity.ok(user);

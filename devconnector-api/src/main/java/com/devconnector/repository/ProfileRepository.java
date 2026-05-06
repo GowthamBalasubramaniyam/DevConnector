@@ -14,7 +14,6 @@ import java.util.Optional;
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
-    // THIS IS THE MISSING PIECE causing your red line
     Optional<Profile> findByUser(User user);
     Optional<Profile> findByUserEmail(String email);
 
@@ -28,6 +27,6 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     	       "LEFT JOIN FETCH p.user " + 
     	       "LEFT JOIN FETCH p.experience " + 
     	       "LEFT JOIN FETCH p.education " + 
-    	       "WHERE p.user.id = :uId") // Changed variable name to be distinct
+    	       "WHERE p.user.id = :uId") 
     	Optional<Profile> findByUserIdWithEverything(@Param("uId") Long uId);
 }

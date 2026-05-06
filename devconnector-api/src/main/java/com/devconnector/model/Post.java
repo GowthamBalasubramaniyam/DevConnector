@@ -30,7 +30,6 @@ public class Post {
     @Column(nullable = false)
     private String text;
 
-    // We store these just like your MERN app for quick display
     private String name;
     
     @Column(columnDefinition = "TEXT")
@@ -115,5 +114,4 @@ public class Post {
 	@Column(name = "created_at")
 	private LocalDateTime date = LocalDateTime.now();
 	
-    // We will add Likes and Comments relationships in the next steps
 }

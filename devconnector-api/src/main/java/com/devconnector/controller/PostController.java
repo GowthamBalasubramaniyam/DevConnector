@@ -27,10 +27,8 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody Map<String, String> body) {
-        // Better way to get the email set by your JwtFilter
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
-        // Check for anonymous user manually to avoid DB errors
         if ("anonymousUser".equals(email)) {
             return ResponseEntity.status(401).body("You must be logged in to post");
         }

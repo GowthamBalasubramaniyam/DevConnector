@@ -31,7 +31,6 @@ public class UserController {
     }
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
-        // This retrieves the email we stored in the SecurityContext during the JwtFilter step
         Object principal = org.springframework.security.core.context.SecurityContextHolder
                             .getContext().getAuthentication().getPrincipal();
         

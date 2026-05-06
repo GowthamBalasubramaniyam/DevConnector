@@ -33,11 +33,11 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String avatar;
 
-    @CreationTimestamp // Automatically sets the date (replaces default: Date.now in MERN)
+    @CreationTimestamp 
     private LocalDateTime date;
     
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Prevents infinite recursion during JSON serialization
+    @JsonIgnore 
     private Profile profile;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

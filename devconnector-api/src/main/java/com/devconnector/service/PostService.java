@@ -27,19 +27,16 @@ public class PostService {
 
     @Transactional
     public Post createPost(String email, String text) throws Exception {
-        // 1. Find the user from the email provided by the controller
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception("User not found"));
 
-        // 2. Create and populate the Post object
         Post post = new Post();
         post.setText(text);
-        post.setUser(user); // Links the ManyToOne relationship
-        post.setName(user.getName()); // For quick display in frontend
-        post.setAvatar(user.getAvatar()); // Uses the Base64 TEXT column we fixed
+        post.setUser(user); 
+        post.setName(user.getName()); 
+        post.setAvatar(user.getAvatar()); 
         post.setDate(LocalDateTime.now());
 
-        // 3. Save and return
         return postRepository.save(post);
     }
     
@@ -50,7 +47,7 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new Exception("Post not found"));
 
-        // Security Check: Only the owner can delete
+        // Only the owner can delete
         if (!post.getUser().getId().equals(user.getId())) {
             throw new Exception("User not authorized to delete this post");
         }
@@ -68,7 +65,6 @@ public class PostService {
 
         Long userId = user.getId();
 
-        // Use an Iterator or removeIf to ensure the ID is actually found and removed
         if (post.getLikes().contains(userId)) {
             // Unlike: Remove the specific ID
             post.getLikes().remove(userId);
@@ -77,7 +73,6 @@ public class PostService {
             post.getLikes().add(userId);
         }
 
-        // CRITICAL: Flush the changes so the DB updates before the response is sent
         return postRepository.saveAndFlush(post);
     }
     
@@ -106,15 +101,12 @@ public class PostService {
     }
     
     public Post deleteComment(String email, Long postId, Long commentId) throws Exception {
-        // 1. Find the post
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new Exception("Post not found"));
 
-        // 2. Find the comment
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new Exception("Comment not found"));
 
-        // 3. Security Check: Does this comment belong to the user who is trying to delete it?
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception("User not found"));
         
@@ -122,10 +114,8 @@ public class PostService {
             throw new Exception("User not authorized to delete this comment");
         }
 
-        // 4. Delete from database
         commentRepository.delete(comment);
         
-        // 5. Refresh the local post object's list so the response is accurate
         post.getComments().removeIf(c -> c.getId().equals(commentId));
 
         return post;

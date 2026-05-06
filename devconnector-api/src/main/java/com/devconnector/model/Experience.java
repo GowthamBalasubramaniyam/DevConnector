@@ -23,7 +23,7 @@ public class Experience {
     
     @JsonProperty("from")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate fromDate; // Note: Java uses LocalDate for dates
+    private LocalDate fromDate; // Java uses LocalDate for dates
     
     @JsonProperty("to")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

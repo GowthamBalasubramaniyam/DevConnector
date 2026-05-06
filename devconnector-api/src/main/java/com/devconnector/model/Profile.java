@@ -9,10 +9,10 @@ import java.util.List;
 
 public class Profile {
     @Id
-    private Long id; // This matches the User's ID
+    private Long id; 
 
     @OneToOne
-    @MapsId // This links the Profile ID directly to the User ID
+    @MapsId 
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
@@ -45,7 +45,7 @@ public class Profile {
         return location;
     }
 
-    public void setLocation(String location) { // Use camelCase
+    public void setLocation(String location) { 
         this.location = location;
     }
     

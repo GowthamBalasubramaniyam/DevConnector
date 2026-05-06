@@ -22,16 +22,12 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
-				// 1. Enable CORS and Disable CSRF
 				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf.disable())
 
-				// 2. Stateless Session (for JWT)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-				// 3. Request Authorizations
 				.authorizeHttpRequests(auth -> auth
-						// PUBLIC: Auth & User Registration
 						
 						.requestMatchers("/uploads/**", "/avatars/**", "/static/**").permitAll()
 					    .requestMatchers(HttpMethod.GET, "/*.png", "/*.jpg", "/*.jpeg", "/*.gif").permitAll()
@@ -42,29 +38,24 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().requestMatchers("/api/auth/**")
 						.permitAll().requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
-						// Unrestricted viewing
 						.requestMatchers(HttpMethod.GET, "/api/profile").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/profile/user/**").permitAll()
 
-						// Locked down for logged-in users
 						.requestMatchers("/api/profile/me").authenticated()
 						.requestMatchers(HttpMethod.POST, "/api/profile").authenticated()
-						.requestMatchers(HttpMethod.PUT, "/api/profile/**").authenticated() // For experience/education
+						.requestMatchers(HttpMethod.PUT, "/api/profile/**").authenticated() 
 						.requestMatchers(HttpMethod.DELETE, "/api/profile/**").authenticated()
 
-						// PUBLIC: Posts (Viewing feed)
 						.requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
 
-						// PRIVATE: Everything else requires a token
 						.anyRequest().authenticated())
 
-				// 4. JWT Filter position
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
 
-	// This creates the "Bean" that UserService is looking for
+	// This creates a "Bean" that UserService is looking for
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
