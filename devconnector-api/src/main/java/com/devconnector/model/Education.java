@@ -10,33 +10,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Data
-public class Experience {
+public class Education {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
-    
-
-	private String company;
-    private String location;
-    
+    private String school;
+    private String degree;
+    private String fieldofstudy;
     @JsonProperty("from")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate fromDate; // Note: Java uses LocalDate for dates
-    
+    private LocalDate fromDate; 
     @JsonProperty("to")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate toDate;
+    private LocalDate toDate;   
     private boolean current;
     private String description;
 
-    @ManyToOne // Many experiences belong to one Profile
+    @ManyToOne
     @JoinColumn(name = "profile_id")
     @JsonIgnore
     private Profile profile;
-    
-    public Long getId() {
+
+	public Long getId() {
 		return id;
 	}
 
@@ -44,30 +40,29 @@ public class Experience {
 		this.id = id;
 	}
 
-	public String getTitle() {
-		return title;
+	public String getSchool() {
+		return school;
 	}
 
-	public void setTitle(String title) {
-		this.title = title;
+	public void setSchool(String school) {
+		this.school = school;
 	}
 
-	public String getCompany() {
-		return company;
+	public String getDegree() {
+		return degree;
 	}
 
-	public void setCompany(String company) {
-		this.company = company;
+	public void setDegree(String degree) {
+		this.degree = degree;
 	}
 
-	public String getLocation() {
-		return location;
+	public String getFieldofstudy() {
+		return fieldofstudy;
 	}
 
-	public void setLocation(String location) {
-		this.location = location;
+	public void setFieldofstudy(String fieldofstudy) {
+		this.fieldofstudy = fieldofstudy;
 	}
-	
 	@JsonProperty("from")
 	public LocalDate getFromDate() {
 		return fromDate;
