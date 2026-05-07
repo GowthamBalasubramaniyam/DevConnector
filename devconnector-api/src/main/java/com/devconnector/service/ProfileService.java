@@ -18,6 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
@@ -162,9 +163,13 @@ public class ProfileService {
         try {
             ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             return response.getBody();
+        } catch (HttpClientErrorException e) {
+            // THIS IS THE KEY: Log what GitHub actually said
+            System.out.println("GitHub API Error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            return null; // Return null so the frontend can handle an empty state gracefully
         } catch (Exception e) {
-            System.out.println("GitHub API Error: " + e.getMessage());
-            throw e; 
+            System.out.println("General Error: " + e.getMessage());
+            return null;
         }
     }
 
