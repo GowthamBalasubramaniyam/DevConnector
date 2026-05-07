@@ -12,6 +12,10 @@ import com.devconnector.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -147,8 +151,21 @@ public class ProfileService {
     // 9. GitHub Repos (External API)
     public Object getGithubRepos(String username) {
         String url = "https://api.github.com/users/" + username + "/repos?per_page=5&sort=created:asc";
+        
         RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(url, Object.class);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Agent", "Dev-Verse-App"); 
+        
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+            return response.getBody();
+        } catch (Exception e) {
+            System.out.println("GitHub API Error: " + e.getMessage());
+            throw e; 
+        }
     }
 
     // 10. Mapper (Public so Controller can use it for POST/PUT returns)
