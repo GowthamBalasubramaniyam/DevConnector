@@ -151,33 +151,22 @@ public class ProfileService {
 
     // 9. GitHub Repos (External API)
     public Object getGithubRepos(String username) {
-        // 1. Correct GitHub API URL
         String url = "https://api.github.com/users/" + username + "/repos?per_page=5&sort=created:asc";
-        
-        // 2. You MUST set a User-Agent header or GitHub returns 403/404
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "Dev-Verse-App"); 
-        headers.set("Accept", "application/vnd.github.v3+json");
-        
-        HttpEntity<String> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Agent", "Dev-Verse-App"); // Must be exactly this
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            // 3. Use exchange() to include the headers in the GET request
-            ResponseEntity<Object> response = restTemplate.exchange(
-                url, 
-                HttpMethod.GET, 
-                entity, 
-                Object.class
-            );
+            // MUST use .exchange to actually send the headers!
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             return response.getBody();
         } catch (Exception e) {
-            // 4. This prints the REAL error to your Render logs (Check them!)
             System.err.println("GitHub Fetch Error: " + e.getMessage());
-            return null; 
+            throw e; 
         }
     }
-
     // 10. Mapper (Public so Controller can use it for POST/PUT returns)
     public ProfileDTO convertToDTO(Profile profile) {
         ProfileDTO dto = new ProfileDTO();
