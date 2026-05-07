@@ -151,25 +151,30 @@ public class ProfileService {
 
     // 9. GitHub Repos (External API)
     public Object getGithubRepos(String username) {
+        // 1. Correct GitHub API URL
         String url = "https://api.github.com/users/" + username + "/repos?per_page=5&sort=created:asc";
         
-        RestTemplate restTemplate = new RestTemplate();
-        
+        // 2. You MUST set a User-Agent header or GitHub returns 403/404
         HttpHeaders headers = new HttpHeaders();
         headers.set("User-Agent", "Dev-Verse-App"); 
+        headers.set("Accept", "application/vnd.github.v3+json");
         
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        RestTemplate restTemplate = new RestTemplate();
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+            // 3. Use exchange() to include the headers in the GET request
+            ResponseEntity<Object> response = restTemplate.exchange(
+                url, 
+                HttpMethod.GET, 
+                entity, 
+                Object.class
+            );
             return response.getBody();
-        } catch (HttpClientErrorException e) {
-            // THIS IS THE KEY: Log what GitHub actually said
-            System.out.println("GitHub API Error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return null; // Return null so the frontend can handle an empty state gracefully
         } catch (Exception e) {
-            System.out.println("General Error: " + e.getMessage());
-            return null;
+            // 4. This prints the REAL error to your Render logs (Check them!)
+            System.err.println("GitHub Fetch Error: " + e.getMessage());
+            return null; 
         }
     }
 
