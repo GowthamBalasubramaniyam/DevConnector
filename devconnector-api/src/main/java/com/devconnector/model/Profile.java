@@ -36,6 +36,7 @@ public class Profile {
     private Social social;
     
     private String githubusername;
+    @Column(columnDefinition = "TEXT")
     private String bio;
     
     private String location;
