@@ -153,16 +153,14 @@ public class ProfileService {
     public Object getGithubRepos(String username) {
         String url = "https://api.github.com/users/" + username + "/repos?per_page=5&sort=created:asc";
         
-        // 1. You MUST set these headers for production cloud hosting
         HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "Dev-Verse-App"); 
+        headers.set("User-Agent", "Dev-Verse-Java-Backend"); 
         headers.set("Accept", "application/vnd.github.v3+json");
         
         HttpEntity<String> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
 
         try {
-            // 2. Use .exchange to include the entity (headers)
             ResponseEntity<Object> response = restTemplate.exchange(
                 url, 
                 HttpMethod.GET, 
@@ -171,9 +169,8 @@ public class ProfileService {
             );
             return response.getBody();
         } catch (Exception e) {
-            // 3. Print the REAL error to Render Logs so we stop guessing
-            System.err.println("CRITICAL GitHub Error: " + e.getMessage());
-            throw e; 
+            System.err.println("GitHub API Failure: " + e.getMessage());
+            return null; 
         }
     }
     

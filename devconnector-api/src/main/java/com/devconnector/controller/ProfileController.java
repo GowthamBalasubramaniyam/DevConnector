@@ -187,8 +187,7 @@ public class ProfileController {
             Object repos = profileService.getGithubRepos(username);
             return ResponseEntity.ok(repos);
         } catch (Exception e) {
-        	e.printStackTrace();
-            return ResponseEntity.status(404).body("No Github profile found");
+            return ResponseEntity.status(500).body("Actual Error: " + e.getMessage());
         }
     }
     
