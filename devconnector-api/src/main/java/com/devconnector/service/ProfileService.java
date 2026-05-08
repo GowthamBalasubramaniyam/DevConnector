@@ -152,21 +152,31 @@ public class ProfileService {
     // 9. GitHub Repos (External API)
     public Object getGithubRepos(String username) {
         String url = "https://api.github.com/users/" + username + "/repos?per_page=5&sort=created:asc";
-        RestTemplate restTemplate = new RestTemplate();
         
+        // 1. You MUST set these headers for production cloud hosting
         HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "Dev-Verse-App"); // Must be exactly this
+        headers.set("User-Agent", "Dev-Verse-App"); 
+        headers.set("Accept", "application/vnd.github.v3+json");
+        
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        RestTemplate restTemplate = new RestTemplate();
 
         try {
-            // MUST use .exchange to actually send the headers!
-            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+            // 2. Use .exchange to include the entity (headers)
+            ResponseEntity<Object> response = restTemplate.exchange(
+                url, 
+                HttpMethod.GET, 
+                entity, 
+                Object.class
+            );
             return response.getBody();
         } catch (Exception e) {
-            System.err.println("GitHub Fetch Error: " + e.getMessage());
+            // 3. Print the REAL error to Render Logs so we stop guessing
+            System.err.println("CRITICAL GitHub Error: " + e.getMessage());
             throw e; 
         }
     }
+    
     // 10. Mapper (Public so Controller can use it for POST/PUT returns)
     public ProfileDTO convertToDTO(Profile profile) {
         ProfileDTO dto = new ProfileDTO();
