@@ -182,12 +182,12 @@ public class ProfileController {
     }
 
     @GetMapping("/github/{username}")
-    public ResponseEntity<?> getGithubRepos(@PathVariable String username) {
+    public ResponseEntity<String> getGithubRepos(@PathVariable String username) {
         try {
-            Object repos = profileService.getGithubRepos(username);
-            return ResponseEntity.ok(repos);
+            String reposJson = profileService.getGithubRepos(username);
+            return ResponseEntity.ok(reposJson);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Actual Error: " + e.getMessage());
+            return ResponseEntity.status(500).body("CONTROLLER_CATCH: " + e.getMessage());
         }
     }
     

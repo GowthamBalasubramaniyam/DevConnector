@@ -150,27 +150,24 @@ public class ProfileService {
     }
 
     // 9. GitHub Repos (External API)
-    public Object getGithubRepos(String username) {
+    public String getGithubRepos(String username) {
         String url = "https://api.github.com/users/" + username + "/repos?per_page=5&sort=created:asc";
+        RestTemplate restTemplate = new RestTemplate();
         
         HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "Dev-Verse-Java-Backend"); 
-        headers.set("Accept", "application/vnd.github.v3+json");
+        headers.set("User-Agent", "Java-Spring-Boot-App"); 
+        headers.set("Accept", "application/json");
         
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        RestTemplate restTemplate = new RestTemplate();
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                url, 
-                HttpMethod.GET, 
-                entity, 
-                Object.class
-            );
+            // We fetch as a String to avoid any serialization issues
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             return response.getBody();
         } catch (Exception e) {
-            System.err.println("GitHub API Failure: " + e.getMessage());
-            return null; 
+            // This will print to the Render logs
+            System.err.println("GITHUB_ERROR: " + e.getMessage());
+            return "ERROR_FROM_SERVICE: " + e.getMessage(); 
         }
     }
     
