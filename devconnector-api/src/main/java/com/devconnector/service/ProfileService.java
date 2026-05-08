@@ -154,20 +154,26 @@ public class ProfileService {
         String url = "https://api.github.com/users/" + username + "/repos?per_page=5&sort=created:asc";
         RestTemplate restTemplate = new RestTemplate();
         
+        // Fetch the token from Render Environment Variables
+        String token = System.getenv("GITHUB_TOKEN");
+        
         HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "Java-Spring-Boot-App"); 
+        headers.set("User-Agent", "Dev-Verse-App");
         headers.set("Accept", "application/json");
+        
+        // Add Authorization header if token exists
+        if (token != null && !token.isEmpty()) {
+            headers.set("Authorization", "token " + token);
+        }
         
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            // We fetch as a String to avoid any serialization issues
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             return response.getBody();
         } catch (Exception e) {
-            // This will print to the Render logs
-            System.err.println("GITHUB_ERROR: " + e.getMessage());
-            return "ERROR_FROM_SERVICE: " + e.getMessage(); 
+            System.err.println("GITHUB_AUTH_ERROR: " + e.getMessage());
+            return null; 
         }
     }
     
