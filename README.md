@@ -1,4 +1,4 @@
-# DevConnector 2.0
+# Dev-Verse
 
 A high-performance, full-stack social networking application specifically engineered for the developer community. This platform facilitates professional networking, portfolio showcasing, and technical discussion through a robust integrated ecosystem.
 
