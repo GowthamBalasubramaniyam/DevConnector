@@ -48,7 +48,7 @@ public class AiModerationService {
                                   .path("text").asText().trim().toUpperCase();
 
             return aiAnswer.contains("YES");
-            
+             
         } catch (Exception e) { 
             System.err.println("AI Moderation Error: " + e.getMessage());
             return true; 
