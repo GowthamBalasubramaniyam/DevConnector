@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.devconnector.model.Post;
+import com.devconnector.service.AiModerationService;
 import com.devconnector.service.PostService;
 
 @RestController
@@ -25,24 +26,36 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private AiModerationService aiModerationService;
+
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody Map<String, String> body) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
         if ("anonymousUser".equals(email)) {
-            return ResponseEntity.status(401).body("You must be logged in to post");
+            // Using Map.of("msg", "...") so React can parse the error
+            return ResponseEntity.status(401).body(Map.of("msg", "You must be logged in to post"));
         }
 
         try {
             String text = body.get("text");
             if (text == null || text.trim().isEmpty()) {
-                return ResponseEntity.status(400).body("Text is required");
+                return ResponseEntity.status(400).body(Map.of("msg", "Text is required"));
+            }
+
+            boolean isTechRelated = aiModerationService.isTechRelated(text);
+            
+            if (!isTechRelated) {
+                return ResponseEntity.status(400)
+                    .body(Map.of("msg", "Content Rejected: Dev-Verse is for software development and tech-related posts only."));
             }
             
             Post post = postService.createPost(email, text);
             return ResponseEntity.ok(post);
+            
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(e.getMessage());
+            return ResponseEntity.status(400).body(Map.of("msg", e.getMessage()));
         }
     }
     
