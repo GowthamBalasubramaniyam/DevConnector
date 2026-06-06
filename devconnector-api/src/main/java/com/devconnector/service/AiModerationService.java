@@ -49,7 +49,7 @@ public class AiModerationService {
 
             return aiAnswer.contains("YES");
             
-        } catch (Exception e) {
+        } catch (Exception e) { 
             System.err.println("AI Moderation Error: " + e.getMessage());
             return true; 
         }
