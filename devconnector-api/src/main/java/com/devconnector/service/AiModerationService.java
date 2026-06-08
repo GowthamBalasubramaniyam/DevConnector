@@ -3,12 +3,12 @@ package com.devconnector.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.Duration;
 
 @Service
 public class AiModerationService {
@@ -16,41 +16,55 @@ public class AiModerationService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
+    private final RestTemplate restTemplate;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    public AiModerationService() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(3000); // 3 seconds
+        factory.setReadTimeout(5000);    // 5 seconds
+        this.restTemplate = new RestTemplate(factory);
+    }
+
     public boolean isTechRelated(String postText) {
+        if (postText == null || postText.isBlank()) return false;
+
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Escape double quotes in user text to prevent JSON breaking
-        String safeText = postText.replace("\"", "\\\"");
+        // Sanitize input to prevent JSON injection
+        String safeText = postText.replace("\"", "\\\"").replace("\n", " ");
 
-        // Strict prompt using Java 17 Text Blocks
         String requestBody = """
             {
               "contents": [{
-                "parts": [{"text": "You are a strict content moderator for a software developer community. Analyze this text. Is it related to software development, programming, computer science, technology, or IT careers? Reply strictly with the single word 'YES' or 'NO'. Text: %s"}]
+                "parts": [{"text": "Analyze if this text is related to software development, programming, IT careers, or engineering. If the text is ambiguous, err on the side of 'YES'. Reply strictly with 'YES' or 'NO'. Text: %s"}]
               }]
             }
             """.formatted(safeText);
 
-        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-
         try {
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
             
-            // Parse the JSON response to grab the AI's actual text
-            ObjectMapper mapper = new ObjectMapper(); 
-            JsonNode root = mapper.readTree(response.getBody());
-            String aiAnswer = root.path("candidates").get(0)
-                                  .path("content").path("parts").get(0)
-                                  .path("text").asText().trim().toUpperCase();
+            if (response.getBody() == null) return true;
 
-            return aiAnswer.contains("YES");
-             
-        } catch (Exception e) { 
-            System.err.println("AI Moderation Error: " + e.getMessage());
+            JsonNode root = mapper.readTree(response.getBody());
+            
+            // Safe navigation: Check if paths exist before calling .get(0)
+            JsonNode textNode = root.path("candidates").get(0)
+                                    .path("content").path("parts").get(0)
+                                    .path("text");
+
+            if (textNode.isMissingNode()) return true;
+
+            return textNode.asText().toUpperCase().contains("YES");
+            
+        } catch (Exception e) {
+            // Fail-open: Log the error but don't block the user if AI service is down
+            System.err.println("AI Moderation API unreachable: " + e.getMessage());
             return true; 
         }
     }
