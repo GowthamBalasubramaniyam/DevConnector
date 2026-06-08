@@ -26,7 +26,7 @@ public class PostService {
     private CommentRepository commentRepository;
     
     @Autowired
-    private AiModerationService aiModerationService;
+    private AiModerationService aiModerationService;	
 
     @Transactional
     public Post createPost(String email, String text) throws Exception {
@@ -35,7 +35,7 @@ public class PostService {
         
         if (!isTech) {
             // This will stop the process and send an error back to the user
-            throw new Exception("Content policy violation: Post must be tech-related.");
+            throw new Exception("We're all about tech here! Please share something related to software or IT");
         }
 
         // 2. If it passed, proceed with database logic

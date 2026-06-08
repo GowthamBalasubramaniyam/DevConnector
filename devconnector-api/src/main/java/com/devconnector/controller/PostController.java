@@ -3,7 +3,10 @@ package com.devconnector.controller;
 import java.util.List;
 import java.util.Map;
 
+import javax.security.auth.login.AccountNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,31 +36,42 @@ public class PostController {
     public ResponseEntity<?> createPost(@RequestBody Map<String, String> body) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
+        // 1. Authentication check
         if ("anonymousUser".equals(email)) {
-            // Using Map.of("msg", "...") so React can parse the error
-            return ResponseEntity.status(401).body(Map.of("msg", "You must be logged in to post"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                 .body(Map.of("msg", "You must be logged in to post"));
+        }
+
+        String text = body.get("text");
+        if (text == null || text.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                 .body(Map.of("msg", "Text is required"));
         }
 
         try {
-            String text = body.get("text");
-            if (text == null || text.trim().isEmpty()) {
-                return ResponseEntity.status(400).body(Map.of("msg", "Text is required"));
-            }
-
-            boolean isTechRelated = aiModerationService.isTechRelated(text);
-            
-            if (!isTechRelated) {
-                return ResponseEntity.status(400)
+            // 2. AI Gatekeeper
+            // We call this BEFORE the service layer to save database resources
+            if (!aiModerationService.isTechRelated(text)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("msg", "Content Rejected: Dev-Verse is for software development and tech-related posts only."));
             }
             
+            // 3. Persist
             Post post = postService.createPost(email, text);
             return ResponseEntity.ok(post);
             
+        } catch (AccountNotFoundException e) {
+            // Catching specific business exceptions
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .body(Map.of("msg", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(Map.of("msg", e.getMessage()));
+            // Log the technical error so you can see it in Render logs
+            System.err.println("Unexpected error during post creation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(Map.of("msg", "An internal server error occurred."));
         }
     }
+    
     
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {
