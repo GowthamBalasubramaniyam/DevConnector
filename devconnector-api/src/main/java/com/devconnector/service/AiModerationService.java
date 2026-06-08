@@ -41,7 +41,7 @@ public class AiModerationService {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
             
             // Parse the JSON response to grab the AI's actual text
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper(); 
             JsonNode root = mapper.readTree(response.getBody());
             String aiAnswer = root.path("candidates").get(0)
                                   .path("content").path("parts").get(0)
