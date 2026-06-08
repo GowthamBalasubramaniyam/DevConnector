@@ -24,9 +24,21 @@ public class PostService {
     
     @Autowired
     private CommentRepository commentRepository;
+    
+    @Autowired
+    private AiModerationService aiModerationService;
 
     @Transactional
     public Post createPost(String email, String text) throws Exception {
+        // 1. GATEKEEPER: Check AI moderation first
+        boolean isTech = aiModerationService.isTechRelated(text);
+        
+        if (!isTech) {
+            // This will stop the process and send an error back to the user
+            throw new Exception("Content policy violation: Post must be tech-related.");
+        }
+
+        // 2. If it passed, proceed with database logic
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception("User not found"));
 
