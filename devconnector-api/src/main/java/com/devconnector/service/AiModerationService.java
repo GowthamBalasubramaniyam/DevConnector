@@ -40,11 +40,16 @@ public class AiModerationService {
         String requestBody = """
         	    {
         	      "contents": [{
-        	        "parts": [{"text": "You are a rigid filter. 
-        	        If the following text is not explicitly about software development, programming, IT infrastructure, 
-        	        or computer science, you must return 'NO'. 
-        	        Return 'YES' ONLY if it is clearly technical. 
-        	        Text: %s"}]
+        	        "parts": [{"text": "You are a content filter for a developer social network. 
+        	        Analyze if the text is related to software development, programming, IT, or engineering.
+        	        Examples:
+        	        - 'How to fix null pointer in Java?' -> YES
+        	        - 'I just deployed my app to Render' -> YES
+        	        - 'I bought cookies' -> NO
+        	        - 'The weather is nice' -> NO
+        	        
+        	        Analyze this text: %s. 
+        	        Reply ONLY with 'YES' or 'NO'."}]
         	      }]
         	    }
         	    """.formatted(safeText);
@@ -52,6 +57,7 @@ public class AiModerationService {
         try {
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            System.out.println("DEBUG: AI Raw Response: " + response.getBody()); // Add this!
             
             if (response.getBody() == null) return true;
 
@@ -69,7 +75,7 @@ public class AiModerationService {
         } catch (Exception e) {
             // Fail-open: Log the error but don't block the user if AI service is down
             System.err.println("AI Moderation API unreachable: " + e.getMessage());
-            return false; 
+            return true; 
         }
     }
 }
