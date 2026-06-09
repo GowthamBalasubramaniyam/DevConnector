@@ -29,53 +29,44 @@ public class AiModerationService {
     public boolean isTechRelated(String postText) {
         if (postText == null || postText.isBlank()) return false;
 
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        // EXACT URL FROM YOUR JSON PAYLOAD
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Sanitize input to prevent JSON injection
         String safeText = postText.replace("\"", "\\\"").replace("\n", " ");
 
         String requestBody = """
-        	    {
-        	      "contents": [{
-        	        "parts": [{"text": "You are a content filter for a developer social network. 
-        	        Analyze if the text is related to software development, programming, IT, or engineering.
-        	        Examples:
-        	        - 'How to fix null pointer in Java?' -> YES
-        	        - 'I just deployed my app to Render' -> YES
-        	        - 'I bought cookies' -> NO
-        	        - 'The weather is nice' -> NO
-        	        
-        	        Analyze this text: %s. 
-        	        Reply ONLY with 'YES' or 'NO'."}]
-        	      }]
-        	    }
-        	    """.formatted(safeText);
+            {
+              "contents": [{
+                "parts": [{"text": "You are a content filter for a developer social network. Analyze if the text is related to software development, programming, IT, or engineering. Examples: 'How to fix null pointer in Java?' -> YES. 'I bought cookies' -> NO. Analyze this text: %s. Reply ONLY with 'YES' or 'NO'."}]
+              }]
+            }
+            """.formatted(safeText);
 
         try {
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-            System.out.println("DEBUG: AI Raw Response: " + response.getBody()); // Add this!
             
             if (response.getBody() == null) return true;
 
             JsonNode root = mapper.readTree(response.getBody());
             
-            // Safe navigation: Check if paths exist before calling .get(0)
             JsonNode textNode = root.path("candidates").get(0)
                                     .path("content").path("parts").get(0)
                                     .path("text");
 
             if (textNode.isMissingNode()) return true;
 
-            return textNode.asText().toUpperCase().contains("YES");
+            String aiAnswer = textNode.asText().toUpperCase().trim();
+            System.out.println("DEBUG: Raw AI Response text: " + aiAnswer);
+
+            return aiAnswer.contains("YES");
             
         } catch (Exception e) {
-            // Fail-open: Log the error but don't block the user if AI service is down
-            System.err.println("AI Moderation API unreachable: " + e.getMessage());
-            return false; 
+            System.err.println("AI Moderation API Error: " + e.getMessage());
+            return false; // Hard block during this final verification step
         }
     }
 }
