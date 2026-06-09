@@ -36,42 +36,34 @@ public class PostController {
     public ResponseEntity<?> createPost(@RequestBody Map<String, String> body) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
-        // 1. Authentication check
         if ("anonymousUser".equals(email)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                 .body(Map.of("msg", "You must be logged in to post"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("msg", "You must be logged in to post"));
         }
 
         String text = body.get("text");
         if (text == null || text.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(Map.of("msg", "Text is required"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("msg", "Text is required"));
         }
 
         try {
-            // 2. AI Gatekeeper
-            // We call this BEFORE the service layer to save database resources
-            if (!aiModerationService.isTechRelated(text)) {
+            // --- LOGGING IS CRITICAL FOR DEBUGGING ---
+            boolean isTech = aiModerationService.isTechRelated(text);
+            System.out.println("AI MODERATION DEBUG: Post: '" + text + "' | Result: " + isTech);
+            
+            if (!isTech) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("msg", "Content Rejected: Dev-Verse is for software development and tech-related posts only."));
             }
             
-            // 3. Persist
+            // Ensure this method ONLY saves to the database and performs NO OTHER logic
             Post post = postService.createPost(email, text);
             return ResponseEntity.ok(post);
             
-        } catch (AccountNotFoundException e) {
-            // Catching specific business exceptions
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                 .body(Map.of("msg", e.getMessage()));
         } catch (Exception e) {
-            // Log the technical error so you can see it in Render logs
-            System.err.println("Unexpected error during post creation: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body(Map.of("msg", "An internal server error occurred."));
+                                 .body(Map.of("msg", "Error: " + e.getMessage()));
         }
-    }
-    
+    }    
     
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {

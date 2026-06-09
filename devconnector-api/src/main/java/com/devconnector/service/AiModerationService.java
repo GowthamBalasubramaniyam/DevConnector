@@ -38,12 +38,16 @@ public class AiModerationService {
         String safeText = postText.replace("\"", "\\\"").replace("\n", " ");
 
         String requestBody = """
-            {
-              "contents": [{
-                "parts": [{"text": "Analyze if this text is related to software development, programming, IT careers, or engineering. If the text is ambiguous, err on the side of 'YES'. Reply strictly with 'YES' or 'NO'. Text: %s"}]
-              }]
-            }
-            """.formatted(safeText);
+        	    {
+        	      "contents": [{
+        	        "parts": [{"text": "You are a rigid filter. 
+        	        If the following text is not explicitly about software development, programming, IT infrastructure, 
+        	        or computer science, you must return 'NO'. 
+        	        Return 'YES' ONLY if it is clearly technical. 
+        	        Text: %s"}]
+        	      }]
+        	    }
+        	    """.formatted(safeText);
 
         try {
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
