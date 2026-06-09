@@ -29,7 +29,6 @@ public class AiModerationService {
     public boolean isTechRelated(String postText) {
         if (postText == null || postText.isBlank()) return false;
 
-        // EXACT URL FROM YOUR JSON PAYLOAD
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
 
         HttpHeaders headers = new HttpHeaders();
@@ -60,12 +59,9 @@ public class AiModerationService {
             if (textNode.isMissingNode()) return true;
 
             String aiAnswer = textNode.asText().toUpperCase().trim();
-            System.out.println("DEBUG: Raw AI Response text: " + aiAnswer);
-
             return aiAnswer.contains("YES");
             
         } catch (Exception e) {
-            System.err.println("AI Moderation API Error: " + e.getMessage());
             return true; 
         }
     }

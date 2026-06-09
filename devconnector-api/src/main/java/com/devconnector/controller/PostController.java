@@ -36,7 +36,6 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody Map<String, String> body, HttpServletRequest request) {
-    	System.out.println("DEBUG: Incoming request to: " + request.getRequestURI());
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         if ("anonymousUser".equals(email)) {
             return ResponseEntity.status(401).body(Map.of("msg", "Log in required"));
@@ -46,20 +45,13 @@ public class PostController {
         if (text == null || text.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("msg", "Text is required"));
         }
-
-        // --- FORCE GATEKEEPER ---
-        // We execute this before ANYTHING else. 
-        System.out.println("DEBUG: Entering moderation for text: " + text);
         
         boolean isTech = aiModerationService.isTechRelated(text);
         
-        System.out.println("DEBUG: AI returned: " + isTech);
-
         if (!isTech) {
             return ResponseEntity.badRequest()
-                .body(Map.of("msg", "Content Rejected: Dev-Verse is for tech posts only."));
+                .body(Map.of("msg", "Oops! This space is reserved for tech talk. Tell us about what you're building, learning, or solving today!"));
         }
-        // --- GATEKEEPER END ---
 
         try {
             Post post = postService.createPost(email, text);
