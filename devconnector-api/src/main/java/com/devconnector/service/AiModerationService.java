@@ -29,7 +29,7 @@ public class AiModerationService {
     public boolean isTechRelated(String postText) {
         if (postText == null || postText.isBlank()) return false;
 
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -69,7 +69,7 @@ public class AiModerationService {
         } catch (Exception e) {
             // Fail-open: Log the error but don't block the user if AI service is down
             System.err.println("AI Moderation API unreachable: " + e.getMessage());
-            return true; 
+            return false; 
         }
     }
 }
