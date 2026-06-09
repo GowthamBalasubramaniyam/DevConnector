@@ -35,36 +35,36 @@ public class PostController {
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody Map<String, String> body) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        
         if ("anonymousUser".equals(email)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("msg", "You must be logged in to post"));
+            return ResponseEntity.status(401).body(Map.of("msg", "Log in required"));
         }
 
         String text = body.get("text");
-        if (text == null || text.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("msg", "Text is required"));
+        if (text == null || text.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("msg", "Text is required"));
         }
 
+        // --- FORCE GATEKEEPER ---
+        // We execute this before ANYTHING else. 
+        System.out.println("DEBUG: Entering moderation for text: " + text);
+        
+        boolean isTech = aiModerationService.isTechRelated(text);
+        
+        System.out.println("DEBUG: AI returned: " + isTech);
+
+        if (!isTech) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("msg", "Content Rejected: Dev-Verse is for tech posts only."));
+        }
+        // --- GATEKEEPER END ---
+
         try {
-            // --- LOGGING IS CRITICAL FOR DEBUGGING ---
-            boolean isTech = aiModerationService.isTechRelated(text);
-            System.out.println("AI MODERATION DEBUG: Post: '" + text + "' | Result: " + isTech);
-            
-            if (!isTech) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("msg", "Content Rejected: Dev-Verse is for software development and tech-related posts only."));
-            }
-            
-            // Ensure this method ONLY saves to the database and performs NO OTHER logic
             Post post = postService.createPost(email, text);
             return ResponseEntity.ok(post);
-            
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body(Map.of("msg", "Error: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("msg", e.getMessage()));
         }
     }    
-    
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {
         String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
