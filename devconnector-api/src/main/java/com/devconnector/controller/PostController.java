@@ -22,6 +22,8 @@ import com.devconnector.model.Post;
 import com.devconnector.service.AiModerationService;
 import com.devconnector.service.PostService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
@@ -33,7 +35,8 @@ public class PostController {
     private AiModerationService aiModerationService;
 
     @PostMapping
-    public ResponseEntity<?> createPost(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> createPost(@RequestBody Map<String, String> body, HttpServletRequest request) {
+    	System.out.println("DEBUG: Incoming request to: " + request.getRequestURI());
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         if ("anonymousUser".equals(email)) {
             return ResponseEntity.status(401).body(Map.of("msg", "Log in required"));
