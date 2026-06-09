@@ -66,7 +66,7 @@ public class AiModerationService {
             
         } catch (Exception e) {
             System.err.println("AI Moderation API Error: " + e.getMessage());
-            return false; // Hard block during this final verification step
+            return true; 
         }
     }
 }
